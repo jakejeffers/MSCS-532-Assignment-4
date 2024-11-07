@@ -1,60 +1,89 @@
 import random
 import time
-import numpy as np
-from scipy.stats import describe  # For statistical summaries of results
 
-# Define sorting algorithms: Heapsort, Quicksort, Mergesort
+# Sorting Algorithms
+
 def heapsort(arr): 
-    # Heapsort implementation as defined earlier
-    ...
-
-def quicksort(arr):
-    # Python’s built-in Timsort, close to Quicksort in behavior
-    arr.sort()
+    def heapify(arr, n, i):
+        largest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
+        if left < n and arr[left] > arr[largest]:
+            largest = left
+        if right < n and arr[right] > arr[largest]:
+            largest = right
+        if largest != i:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            heapify(arr, n, largest)
+    
+    n = len(arr)
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(arr, n, i)
+    for i in range(n - 1, 0, -1):
+        arr[i], arr[0] = arr[0], arr[i]
+        heapify(arr, i, 0)
 
 def mergesort(arr):
     if len(arr) > 1:
         mid = len(arr) // 2
-        L = arr[:mid]
-        R = arr[mid:]
+        left_half = arr[:mid]
+        right_half = arr[mid:]
 
-        mergesort(L)
-        mergesort(R)
+        mergesort(left_half)
+        mergesort(right_half)
 
         i = j = k = 0
-        while i < len(L) and j < len(R):
-            if L[i] < R[j]:
-                arr[k] = L[i]
+        while i < len(left_half) and j < len(right_half):
+            if left_half[i] < right_half[j]:
+                arr[k] = left_half[i]
                 i += 1
             else:
-                arr[k] = R[j]
+                arr[k] = right_half[j]
                 j += 1
             k += 1
-        while i < len(L):
-            arr[k] = L[i]
+
+        while i < len(left_half):
+            arr[k] = left_half[i]
             i += 1
             k += 1
-        while j < len(R):
-            arr[k] = R[j]
+
+        while j < len(right_half):
+            arr[k] = right_half[j]
             j += 1
             k += 1
 
-# Testing function for various inputs
-def test_sorting_algorithms():
-    sizes = [10**3, 10**4, 10**5]
-    distributions = {
-        'sorted': lambda n: list(range(n)),
-        'reverse_sorted': lambda n: list(range(n, 0, -1)),
-        'random': lambda n: [random.randint(0, 100000) for _ in range(n)],
-        'few_unique': lambda n: [random.choice([1, 2, 3]) for _ in range(n)]
+def quicksort(arr):
+    arr.sort()  # Using Python’s built-in Timsort (a hybrid sort close to Quicksort)
+
+# Testing Setup
+def generate_arrays(size):
+    return {
+        'sorted': list(range(size)),
+        'reverse_sorted': list(range(size, 0, -1)),
+        'random': [random.randint(0, 100000) for _ in range(size)],
+        'few_unique': [random.choice([1, 2, 3]) for _ in range(size)]
     }
 
+def test_algorithms():
+    sizes = [10**3, 10**4, 10**5]
+    distributions = ['sorted', 'reverse_sorted', 'random', 'few_unique']
+    results = {}
+
     for size in sizes:
-        for dist_name, dist_func in distributions.items():
-            arr = dist_func(size)
+        arrays = generate_arrays(size)
+        for dist in distributions:
+            original_array = arrays[dist]
+            results[(size, dist)] = {}
+            
             for sort_func, name in zip([heapsort, quicksort, mergesort], ['Heapsort', 'Quicksort', 'Mergesort']):
-                arr_copy = arr[:]
-                start = time.time()
-                sort_func(arr_copy)
-                end = time.time()
-                print(f"{name} on {dist_name} array of size {size}: {end - start:.5f} seconds")
+                arr = original_array[:]
+                start_time = time.time()
+                sort_func(arr)
+                end_time = time.time()
+                results[(size, dist)][name] = end_time - start_time
+                print(f"{name} on {dist} array of size {size}: {end_time - start_time:.5f} seconds")
+    
+    return results
+
+# Run the tests
+results = test_algorithms()
