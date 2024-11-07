@@ -1,39 +1,60 @@
-def heapify(arr, n, i):
-    # i is the index of the element we need to heapify
-    # n is the size of the heap
-    largest = i
-    left = 2 * i + 1  # Left child index
-    right = 2 * i + 2  # Right child index
+import random
+import time
+import numpy as np
+from scipy.stats import describe  # For statistical summaries of results
 
-    # If the left child is larger than the root
-    if left < n and arr[left] > arr[largest]:
-        largest = left
+# Define sorting algorithms: Heapsort, Quicksort, Mergesort
+def heapsort(arr): 
+    # Heapsort implementation as defined earlier
+    ...
 
-    # If the right child is larger than the current largest
-    if right < n and arr[right] > arr[largest]:
-        largest = right
+def quicksort(arr):
+    # Python’s built-in Timsort, close to Quicksort in behavior
+    arr.sort()
 
-    # If the largest isn't the root, swap and continue heapifying
-    if largest != i:
-        arr[i], arr[largest] = arr[largest], arr[i]
-        # Recursively heapify the affected subtree
-        heapify(arr, n, largest)
+def mergesort(arr):
+    if len(arr) > 1:
+        mid = len(arr) // 2
+        L = arr[:mid]
+        R = arr[mid:]
 
-def heapsort(arr):
-    n = len(arr)
+        mergesort(L)
+        mergesort(R)
 
-    # Step 1: Build a max-heap from the array
-    for i in range(n // 2 - 1, -1, -1):
-        heapify(arr, n, i)
+        i = j = k = 0
+        while i < len(L) and j < len(R):
+            if L[i] < R[j]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1
+            k += 1
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1
+            k += 1
 
-    # Step 2: Extract elements one by one
-    for i in range(n - 1, 0, -1):
-        # Move current root (largest) to the end
-        arr[i], arr[0] = arr[0], arr[i]
-        # Heapify the reduced heap
-        heapify(arr, i, 0)
+# Testing function for various inputs
+def test_sorting_algorithms():
+    sizes = [10**3, 10**4, 10**5]
+    distributions = {
+        'sorted': lambda n: list(range(n)),
+        'reverse_sorted': lambda n: list(range(n, 0, -1)),
+        'random': lambda n: [random.randint(0, 100000) for _ in range(n)],
+        'few_unique': lambda n: [random.choice([1, 2, 3]) for _ in range(n)]
+    }
 
-# Example usage
-arr = [12, 11, 13, 5, 6, 7]
-heapsort(arr)
-print("Sorted array is:", arr)
+    for size in sizes:
+        for dist_name, dist_func in distributions.items():
+            arr = dist_func(size)
+            for sort_func, name in zip([heapsort, quicksort, mergesort], ['Heapsort', 'Quicksort', 'Mergesort']):
+                arr_copy = arr[:]
+                start = time.time()
+                sort_func(arr_copy)
+                end = time.time()
+                print(f"{name} on {dist_name} array of size {size}: {end - start:.5f} seconds")
